@@ -1,0 +1,15 @@
+{{template "base" .}}
+
+{{define "main"}}
+<form action="/" method="post">
+    <div>
+        <label for="url" class="mb-2 form-label">Enter link:</label>
+        <input type="url" class="mb-2 form-control" name="url" id="url" placeholder="https://example.com"
+            pattern="http://.*|https://.*" required />
+    </div>
+    <div class="mb-2">
+        <button type="submit" class="w-100 btn btn-primary">Short</button>
+    </div>
+</form>
+<hr class="my-4">
+{{end}}
