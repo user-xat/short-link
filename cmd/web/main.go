@@ -9,8 +9,9 @@ import (
 )
 
 var (
-	addr      = flag.String("addr", "localhost:8080", "Network address for HTTP")
-	staticDir = flag.String("static-dir", "./ui/static", "Path to static assets")
+	addr         = flag.String("addr", "localhost:8080", "Network address for HTTP")
+	staticDir    = flag.String("static-dir", "./ui/static", "Path to static assets")
+	memCacheAddr = flag.String("memcache", "localhost:11211", "Network addres for Memcached")
 )
 
 func main() {
@@ -18,17 +19,11 @@ func main() {
 	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
 	errorLog := log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
 
-	app := NewServer(NewLinksStoreMap(), errorLog, infoLog)
-	mux := http.NewServeMux()
-	mux.HandleFunc("GET /{$}", app.homeHandler)
-
-	fileServer := http.FileServer(neuteredFileSystem{http.Dir(*staticDir)})
-	mux.Handle("/static/", http.StripPrefix("/static", fileServer))
-
+	app := NewServer(errorLog, infoLog, []string{*memCacheAddr})
 	srv := &http.Server{
 		Addr:     *addr,
 		ErrorLog: errorLog,
-		Handler:  mux,
+		Handler:  app.routes(),
 	}
 
 	infoLog.Printf("Server launch on http://%v", *addr)
