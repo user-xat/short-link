@@ -1,4 +1,4 @@
-package main
+package memcached
 
 import (
 	"testing"
@@ -6,7 +6,7 @@ import (
 	"github.com/bradfitz/gomemcache/memcache"
 )
 
-func TestRWData(t *testing.T) {
+func TestRWRedis(t *testing.T) {
 	mc := memcache.New("localhost:11211")
 	defer mc.Close()
 

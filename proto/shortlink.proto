@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+option go_package = "proto/shortlink";
+
+import "google/protobuf/wrappers.proto";
+
+package shortlink.v1;
+
+message Link {
+    string short = 1;
+    string source = 2;
+}
+
+service ShortLink {
+    rpc Add(google.protobuf.StringValue) returns (Link);
+    rpc Get(google.protobuf.StringValue) returns (Link);
+}

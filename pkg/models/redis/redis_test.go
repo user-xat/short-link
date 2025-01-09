@@ -1,4 +1,4 @@
-package main
+package redis
 
 import (
 	"context"
@@ -19,10 +19,11 @@ func TestRWData(t *testing.T) {
 		Timeout:     5 * time.Second,
 	}
 
-	db, err := NewClient(context.Background(), cfg)
+	sr, err := NewLinkStoreRedis(context.Background(), cfg)
 	if err != nil {
 		t.Fatal(err)
 	}
+	db := sr.db
 
 	// insert data
 	if err := db.Set(context.Background(), "key", "test value", 0).Err(); err != nil {

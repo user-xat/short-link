@@ -9,9 +9,10 @@ import (
 )
 
 var (
-	addr         = flag.String("addr", "localhost:8080", "Network address for HTTP")
-	staticDir    = flag.String("static-dir", "./ui/static", "Path to static assets")
-	memCacheAddr = flag.String("memcache", "localhost:11211", "Network addres for Memcached")
+	addr              = flag.String("addr", "localhost:8080", "Network address for HTTP")
+	staticDir         = flag.String("static-dir", "./ui/static", "Path to static assets")
+	memCacheAddr      = flag.String("memcache", "localhost:11211", "Network addres for Memcached")
+	remoteServiceAddr = flag.String("remote-service", "localhost:50051", "The addres remote service")
 )
 
 func main() {
@@ -19,7 +20,11 @@ func main() {
 	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
 	errorLog := log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
 
-	app := NewServer(errorLog, infoLog, []string{*memCacheAddr})
+	app, err := NewApplication(errorLog, infoLog, *remoteServiceAddr, []string{*memCacheAddr})
+	if err != nil {
+		errorLog.Fatalf("failed create application: %v", err)
+	}
+
 	srv := &http.Server{
 		Addr:     *addr,
 		ErrorLog: errorLog,
