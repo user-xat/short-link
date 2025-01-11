@@ -2,8 +2,8 @@ package main
 
 import (
 	"context"
-	"crypto/md5"
-	"encoding/hex"
+	"crypto/sha1"
+	"encoding/base64"
 
 	"github.com/user-xat/short-link-server/pkg/models"
 )
@@ -31,7 +31,6 @@ func (sl *ShortLink) Set(ctx context.Context, link string) (*models.LinkData, er
 		Short:  suffix,
 		Source: link,
 	})
-
 	if err != nil {
 		return nil, err
 	}
@@ -43,6 +42,6 @@ func (sl *ShortLink) Set(ctx context.Context, link string) (*models.LinkData, er
 }
 
 func generateSuffix(link string) string {
-	hash := md5.Sum([]byte(link))
-	return hex.EncodeToString(hash[:])
+	hash := sha1.Sum([]byte(link))
+	return base64.StdEncoding.EncodeToString(hash[:8])
 }
