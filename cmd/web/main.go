@@ -9,10 +9,10 @@ import (
 )
 
 var (
-	addr              = flag.String("addr", "localhost:8080", "Network address for HTTP")
-	staticDir         = flag.String("static-dir", "./ui/static", "Path to static assets")
+	addr              = flag.String("addr", "localhost:8110", "Network address for HTTP")
 	memCacheAddr      = flag.String("memcache", "localhost:11211", "Network addres for Memcached")
 	remoteServiceAddr = flag.String("remote-service", "localhost:50051", "The addres remote service")
+	staticDir         = flag.String("static-dir", "./ui/static", "Path to static assets")
 	htmlTemplates     = flag.String("html-templ", "./ui/html/", "path to html templates dir")
 )
 

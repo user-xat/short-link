@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	serviceAddr = flag.String("addr", "localhost:50051", "the service address")
+	serviceAddr = flag.String("addr", "localhost:50555", "the service address")
 	dbAddr      = flag.String("db", "localhost:6379", "the db address")
 )
 
