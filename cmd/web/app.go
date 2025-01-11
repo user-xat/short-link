@@ -22,14 +22,20 @@ type application struct {
 	cache         *memcached.CachedLinkModel
 	clientConn    *grpc.ClientConn
 	serviceClient pb.ShortLinkClient
+	templateCache map[string]*template.Template
 }
 
-func NewApplication(errorLog, infoLog *log.Logger, remoteService string, cacheServers []string) (*application, error) {
+func NewApplication(errorLog, infoLog *log.Logger, htmlTemplatesDir, remoteService string, cacheServers []string) (*application, error) {
 	grpcClient, err := grpc.NewClient(remoteService, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return nil, fmt.Errorf("failed open grpc connection: %v", err)
 	}
 	slClient := pb.NewShortLinkClient(grpcClient)
+
+	templCache, err := newTemplateCache(htmlTemplatesDir)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create template cache: %v", err)
+	}
 
 	return &application{
 		errorLog:      errorLog,
@@ -37,6 +43,7 @@ func NewApplication(errorLog, infoLog *log.Logger, remoteService string, cacheSe
 		clientConn:    grpcClient,
 		serviceClient: slClient,
 		cache:         memcached.NewCachedLinkModel(cacheServers...),
+		templateCache: templCache,
 	}, nil
 }
 
@@ -46,35 +53,32 @@ func (app *application) Close() {
 }
 
 func (app *application) homeHandler(w http.ResponseWriter, r *http.Request) {
-	files := []string{
-		"./ui/html/home.page.tmpl",
-		"./ui/html/base.layout.tmpl",
-		"./ui/html/footer.partial.tmpl",
-	}
-
-	ts, err := template.ParseFiles(files...)
-	if err != nil {
-		app.serverError(w, err)
-		return
-	}
-
-	err = ts.Execute(w, nil)
-	if err != nil {
-		app.serverError(w, err)
-	}
+	app.render(w, r, "home.page.tmpl", nil)
 }
 
 func (app *application) createShortLinkHandler(w http.ResponseWriter, r *http.Request) {
-	// TODO:
-	// sourceLink := ""
+	r.ParseForm()
+	if !r.Form.Has("url") || r.Form.Get("url") == "" {
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
 
-	// ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
-	// defer cancel()
-	// link, err := app.serviceClient.Add(ctx, &wrapperspb.StringValue{Value: sourceLink})
-	// if err != nil {
-	// 	app.serverError(w, fmt.Errorf("remote service: %v", err))
-	// 	return
-	// }
+	sourceLink := r.Form.Get("url")
+
+	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
+	defer cancel()
+	link, err := app.serviceClient.Add(ctx, &wrapperspb.StringValue{Value: sourceLink})
+	if err != nil {
+		app.serverError(w, fmt.Errorf("remote service: %v", err))
+		return
+	}
+
+	td := &templateData{Link: &models.LinkData{
+		Source: link.Source,
+		Short:  fmt.Sprintf("http://%s/%s", r.Host, link.Short),
+	}}
+
+	app.render(w, r, "home.page.tmpl", td)
 }
 
 func (app *application) shortLinkHandler(w http.ResponseWriter, r *http.Request) {
@@ -98,7 +102,7 @@ func (app *application) shortLinkHandler(w http.ResponseWriter, r *http.Request)
 		Source: link.Source,
 	})
 	if err != nil {
-		app.errorLog.Printf("failed save to cache: %v", err)
+		app.errorLog.Printf("failed save value to cache: %v", err)
 	}
 
 	http.Redirect(w, r, link.Source, http.StatusSeeOther)

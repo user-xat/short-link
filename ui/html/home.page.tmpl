@@ -4,12 +4,17 @@
 <form action="/" method="post">
     <div>
         <label for="url" class="mb-2 form-label">Enter link:</label>
-        <input type="url" class="mb-2 form-control" name="url" id="url" placeholder="https://example.com"
+        <input type="url" class="mb-2 form-control" name="url" id="url" placeholder="https://example.com/very-very-very-very-long-link"
             pattern="http://.*|https://.*" required />
     </div>
     <div class="mb-2">
         <button type="submit" class="w-100 btn btn-primary">Short</button>
     </div>
 </form>
+{{if and . .Link}}
 <hr class="my-4">
+<div class="alert alert-success" role="alert">
+    Your short link: <a href="{{.Link.Short}}" class="alert-link" target="_blank" rel="noopener noreferrer">{{.Link.Short}}</a>
+</div>
+{{end}}
 {{end}}
