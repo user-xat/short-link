@@ -21,7 +21,7 @@ func TestRWData(t *testing.T) {
 
 	sr, err := NewLinkStoreRedis(context.Background(), cfg)
 	if err != nil {
-		t.Skipf("can't connent to redis: %v", err)
+		t.Skipf("can't create redis store: %v", err)
 	}
 	db := sr.db
 

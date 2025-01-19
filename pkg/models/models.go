@@ -6,5 +6,5 @@ var ErrNotRecord = errors.New("record has not found")
 
 type LinkData struct {
 	Source string `json:"source"`
-	Short  string `json:"short"`
+	Short  string `json:"key"`
 }

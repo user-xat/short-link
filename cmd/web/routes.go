@@ -2,6 +2,7 @@ package main
 
 import "net/http"
 
+// Prescribes the endpoints of the web server
 func (app *application) routes() *http.ServeMux {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /{$}", app.homeHandler)

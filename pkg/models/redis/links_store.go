@@ -47,8 +47,9 @@ func NewLinkStoreRedis(ctx context.Context, cfg Config) (*LinkStoreRedis, error)
 	}, nil
 }
 
-func (s *LinkStoreRedis) Get(ctx context.Context, short string) (*models.LinkData, error) {
-	link, err := s.db.Get(ctx, short).Result()
+// Get link data from redis store by key
+func (s *LinkStoreRedis) Get(ctx context.Context, key string) (*models.LinkData, error) {
+	link, err := s.db.Get(ctx, key).Result()
 	if errors.Is(err, redis.Nil) {
 		return nil, models.ErrNotRecord
 	} else if err != nil {
@@ -57,10 +58,11 @@ func (s *LinkStoreRedis) Get(ctx context.Context, short string) (*models.LinkDat
 
 	return &models.LinkData{
 		Source: link,
-		Short:  short,
+		Short:  key,
 	}, nil
 }
 
+// Add record to redis store, returns key
 func (s *LinkStoreRedis) Set(ctx context.Context, link *models.LinkData) (string, error) {
 	if err := s.db.Set(ctx, link.Short, link.Source, 0).Err(); err != nil {
 		return "", fmt.Errorf("failed to insert data into redis: %v", err)

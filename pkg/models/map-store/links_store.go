@@ -12,12 +12,14 @@ type LinksStoreMap struct {
 	store map[string]string
 }
 
+// Create new links map store
 func NewLinksStoreMap() *LinksStoreMap {
 	return &LinksStoreMap{
 		store: make(map[string]string),
 	}
 }
 
+// Add new record in map store
 func (ls *LinksStoreMap) Set(ctx context.Context, link *models.LinkData) (string, error) {
 	ls.Lock()
 	defer ls.Unlock()
@@ -26,17 +28,18 @@ func (ls *LinksStoreMap) Set(ctx context.Context, link *models.LinkData) (string
 	return link.Short, nil
 }
 
-func (ls *LinksStoreMap) Get(ctx context.Context, suffix string) (*models.LinkData, error) {
+// Get record from map store by key
+func (ls *LinksStoreMap) Get(ctx context.Context, key string) (*models.LinkData, error) {
 	ls.RLock()
 	defer ls.RUnlock()
 
-	link, ok := ls.store[suffix]
+	link, ok := ls.store[key]
 	if !ok {
 		return nil, models.ErrNotRecord
 	}
 
 	return &models.LinkData{
 		Source: link,
-		Short:  suffix,
+		Short:  key,
 	}, nil
 }

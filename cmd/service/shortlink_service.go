@@ -35,7 +35,7 @@ func (s *ShortLinkService) Add(ctx context.Context, link *wrapperspb.StringValue
 }
 
 func (s *ShortLinkService) Get(ctx context.Context, short *wrapperspb.StringValue) (*pb.Link, error) {
-	data, err := s.sl.GetLink(ctx, short.Value)
+	data, err := s.sl.Get(ctx, short.Value)
 	if errors.Is(err, models.ErrNotRecord) {
 		return nil, status.Errorf(codes.NotFound, "record by key %s has not found", short.Value)
 	}

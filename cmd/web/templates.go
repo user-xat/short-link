@@ -11,6 +11,7 @@ type templateData struct {
 	Link *models.LinkData
 }
 
+// Create map with html templates
 func newTemplateCache(dir string) (map[string]*template.Template, error) {
 	cache := make(map[string]*template.Template)
 

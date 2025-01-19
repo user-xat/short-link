@@ -48,7 +48,7 @@ func (m *CachedLinkModel) Set(ctx context.Context, link *models.LinkData) (strin
 	return link.Short, nil
 }
 
-// Get data from cache by short link
+// Get data from cache by key
 func (m *CachedLinkModel) Get(ctx context.Context, key string) (*models.LinkData, error) {
 	type resData struct {
 		item *memcache.Item
@@ -83,7 +83,7 @@ func (m *CachedLinkModel) Get(ctx context.Context, key string) (*models.LinkData
 	}, nil
 }
 
-// Clear cache
+// Delete all data from cache
 func (m *CachedLinkModel) DeleteAll(ctx context.Context) error {
 	res := make(chan error)
 	go func(r chan<- error) {

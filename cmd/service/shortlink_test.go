@@ -23,7 +23,7 @@ func TestRWData(t *testing.T) {
 		t.Fatal("short link is empty")
 	}
 
-	gotLD, err := sl.GetLink(context.Background(), link.Short)
+	gotLD, err := sl.Get(context.Background(), link.Short)
 	if err != nil {
 		t.Fatalf("error to get link by short: %v", err)
 	}
