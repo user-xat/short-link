@@ -6,3 +6,4 @@ compose.yml
 *Dockerfile
 kubernetes
 generate.sh
+resources/*
