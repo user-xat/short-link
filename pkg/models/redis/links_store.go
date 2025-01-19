@@ -50,7 +50,7 @@ func NewLinkStoreRedis(ctx context.Context, cfg Config) (*LinkStoreRedis, error)
 func (s *LinkStoreRedis) Get(ctx context.Context, short string) (*models.LinkData, error) {
 	link, err := s.db.Get(ctx, short).Result()
 	if errors.Is(err, redis.Nil) {
-		return nil, fmt.Errorf("link by %s does not exist", short)
+		return nil, models.ErrNotRecord
 	} else if err != nil {
 		return nil, fmt.Errorf("redis error: %v", err)
 	}

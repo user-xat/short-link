@@ -1,8 +1,7 @@
-package main
+package mapstore
 
 import (
 	"context"
-	"fmt"
 	"sync"
 
 	"github.com/user-xat/short-link-server/pkg/models"
@@ -33,7 +32,7 @@ func (ls *LinksStoreMap) Get(ctx context.Context, suffix string) (*models.LinkDa
 
 	link, ok := ls.store[suffix]
 	if !ok {
-		return nil, fmt.Errorf("link by suffix %s not found", suffix)
+		return nil, models.ErrNotRecord
 	}
 
 	return &models.LinkData{

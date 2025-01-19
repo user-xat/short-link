@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"errors"
 
+	"github.com/user-xat/short-link-server/pkg/models"
 	pb "github.com/user-xat/short-link-server/proto"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -34,6 +36,9 @@ func (s *ShortLinkService) Add(ctx context.Context, link *wrapperspb.StringValue
 
 func (s *ShortLinkService) Get(ctx context.Context, short *wrapperspb.StringValue) (*pb.Link, error) {
 	data, err := s.sl.GetLink(ctx, short.Value)
+	if errors.Is(err, models.ErrNotRecord) {
+		return nil, status.Errorf(codes.NotFound, "record by key %s has not found", short.Value)
+	}
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "error to get %s: %v", short.Value, err)
 	}

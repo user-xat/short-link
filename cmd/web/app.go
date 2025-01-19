@@ -12,7 +12,9 @@ import (
 	"github.com/user-xat/short-link-server/pkg/models/memcached"
 	pb "github.com/user-xat/short-link-server/proto"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
@@ -53,7 +55,7 @@ func (app *application) Close() {
 }
 
 func (app *application) homeHandler(w http.ResponseWriter, r *http.Request) {
-	app.render(w, r, "home.page.tmpl", nil)
+	app.render(w, "home.page.tmpl", nil)
 }
 
 func (app *application) createShortLinkHandler(w http.ResponseWriter, r *http.Request) {
@@ -78,7 +80,7 @@ func (app *application) createShortLinkHandler(w http.ResponseWriter, r *http.Re
 		Short:  fmt.Sprintf("http://%s/%s", r.Host, link.Short),
 	}}
 
-	app.render(w, r, "home.page.tmpl", td)
+	app.render(w, "home.page.tmpl", td)
 }
 
 func (app *application) shortLinkHandler(w http.ResponseWriter, r *http.Request) {
@@ -93,7 +95,16 @@ func (app *application) shortLinkHandler(w http.ResponseWriter, r *http.Request)
 
 	link, err := app.serviceClient.Get(ctx, &wrapperspb.StringValue{Value: shortlink})
 	if err != nil {
-		app.serverError(w, err)
+		if e, ok := status.FromError(err); ok {
+			switch e.Code() {
+			case codes.NotFound:
+				app.notFound(w)
+			default:
+				app.serverError(w, err)
+			}
+		} else {
+			app.serverError(w, err)
+		}
 		return
 	}
 

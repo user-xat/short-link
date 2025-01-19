@@ -10,6 +10,9 @@ import (
 
 func TestRWData(t *testing.T) {
 	m := NewCachedLinkModel("localhost:11211")
+	if err := m.mc.Ping(); err != nil {
+		t.Skipf("can't connect to memcache: %v", err)
+	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
