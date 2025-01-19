@@ -1,0 +1,50 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: web.Dockerfile
+    restart: always
+    ports:
+      - 8110:8110
+    networks:
+      - web-tier
+      - service-tier
+      - cache-tier
+    depends_on:
+      - service
+      - cache
+
+  service:
+    build:
+      context: .
+      dockerfile: service.Dockerfile
+    restart: always
+    networks:
+      - service-tier
+      - redis-tier
+    depends_on:
+      - redis
+
+  redis:
+    image: redis
+    restart: always
+    command: ["redis-server", "--save", "30", "1"]
+    networks:
+      - redis-tier
+    volumes:
+      - redis-data:/data
+
+  cache:
+    image: memcached
+    restart: always
+    networks:
+      - cache-tier
+
+volumes:
+  redis-data:
+
+networks:
+  web-tier:
+  service-tier:
+  redis-tier:
+  cache-tier:

@@ -1,0 +1,6 @@
+commands.md
+.vscode
+compose.yml
+.gitignore
+.git
+*Dockerfile

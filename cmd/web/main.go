@@ -9,11 +9,11 @@ import (
 )
 
 var (
-	addr              = flag.String("addr", "localhost:8110", "Network address for HTTP")
-	memCacheAddr      = flag.String("memcache", "localhost:11211", "Network addres for Memcached")
-	remoteServiceAddr = flag.String("remote-service", "localhost:50051", "The addres remote service")
+	port              = flag.String("addr", "8110", "Launch port")
+	memCacheAddr      = flag.String("memcache", "cache:11211", "Network addres for Memcached")
+	remoteServiceAddr = flag.String("remote-service", "service:54321", "The addres remote service")
 	staticDir         = flag.String("static-dir", "./ui/static", "Path to static assets")
-	htmlTemplates     = flag.String("html-templ", "./ui/html/", "path to html templates dir")
+	htmlTemplates     = flag.String("html-templ-dir", "./ui/html", "path to html templates dir")
 )
 
 func main() {
@@ -28,12 +28,12 @@ func main() {
 	defer app.Close()
 
 	srv := &http.Server{
-		Addr:     *addr,
+		Addr:     ":" + *port,
 		ErrorLog: errorLog,
 		Handler:  app.routes(),
 	}
 
-	infoLog.Printf("Server launch on http://%v", *addr)
+	infoLog.Printf("Server launch on http://localhost:%v", *port)
 	errorLog.Fatal(srv.ListenAndServe())
 }
 

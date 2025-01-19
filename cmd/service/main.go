@@ -14,8 +14,8 @@ import (
 )
 
 var (
-	serviceAddr = flag.String("addr", "localhost:50555", "the service address")
-	dbAddr      = flag.String("db", "localhost:6379", "the db address")
+	port   = flag.String("port", "54321", "the service port")
+	dbAddr = flag.String("db", "redis:6379", "the db address")
 )
 
 func main() {
@@ -38,9 +38,10 @@ func main() {
 		errorLog.Fatalf("failed to create redis store: %v", err)
 	}
 
-	lis, err := net.Listen("tcp", *serviceAddr)
+	addr := ":" + *port
+	lis, err := net.Listen("tcp", addr)
 	if err != nil {
-		errorLog.Fatalf("failed to listen: %s", *serviceAddr)
+		errorLog.Fatalf("failed to listen: %s", addr)
 	}
 	defer lis.Close()
 
