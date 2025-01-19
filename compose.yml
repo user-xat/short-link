@@ -5,7 +5,7 @@ services:
       dockerfile: web.Dockerfile
     restart: always
     ports:
-      - 8110:8110
+      - 80:8110
     networks:
       - web-tier
       - service-tier
