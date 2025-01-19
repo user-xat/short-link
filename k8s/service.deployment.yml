@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shortlink-service
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app: shortlink-service
+  template:
+    metadata:
+      labels:
+        app: shortlink-service
+    spec:
+      containers:
+        - name: shortlink-service
+          image: userxat/shortlink-service
+          resources:
+            limits:
+              memory: "128Mi"
+              cpu: "500m"
+          ports:
+            - containerPort: 54321
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: shortlink-service
+spec:
+  type: ClusterIP
+  selector:
+    app: shortlink-service
+  ports:
+    - port: 54321
+      targetPort: 54321
