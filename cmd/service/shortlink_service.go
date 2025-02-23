@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 
-	"github.com/user-xat/short-link-server/pkg/models"
-	pb "github.com/user-xat/short-link-server/proto"
+	"github.com/user-xat/short-link/pkg/models"
+	pb "github.com/user-xat/short-link/proto"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/wrapperspb"

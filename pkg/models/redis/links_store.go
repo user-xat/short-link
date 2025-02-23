@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/redis/go-redis/v9"
-	"github.com/user-xat/short-link-server/pkg/models"
+	"github.com/user-xat/short-link/pkg/models"
 )
 
 type Config struct {

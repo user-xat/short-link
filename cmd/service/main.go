@@ -8,8 +8,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/user-xat/short-link-server/pkg/models/redis"
-	pb "github.com/user-xat/short-link-server/proto"
+	"github.com/user-xat/short-link/pkg/models/redis"
+	pb "github.com/user-xat/short-link/proto"
 	"google.golang.org/grpc"
 )
 

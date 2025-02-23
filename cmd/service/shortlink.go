@@ -5,7 +5,7 @@ import (
 	"crypto/sha1"
 	"encoding/base64"
 
-	"github.com/user-xat/short-link-server/pkg/models"
+	"github.com/user-xat/short-link/pkg/models"
 )
 
 // Interface for working with the link storage

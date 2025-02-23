@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	mapstore "github.com/user-xat/short-link-server/pkg/models/map-store"
+	mapstore "github.com/user-xat/short-link/pkg/models/map-store"
 )
 
 func TestRWData(t *testing.T) {

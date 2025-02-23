@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	"github.com/bradfitz/gomemcache/memcache"
-	"github.com/user-xat/short-link-server/pkg/models"
+	"github.com/user-xat/short-link/pkg/models"
 )
 
 // Wrapper for Memcached

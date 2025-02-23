@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/user-xat/short-link-server/pkg/models"
+	"github.com/user-xat/short-link/pkg/models"
 )
 
 func TestRWData(t *testing.T) {

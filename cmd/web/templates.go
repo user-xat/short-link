@@ -4,7 +4,7 @@ import (
 	"html/template"
 	"path/filepath"
 
-	"github.com/user-xat/short-link-server/pkg/models"
+	"github.com/user-xat/short-link/pkg/models"
 )
 
 type templateData struct {

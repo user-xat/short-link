@@ -4,7 +4,7 @@ import (
 	"context"
 	"sync"
 
-	"github.com/user-xat/short-link-server/pkg/models"
+	"github.com/user-xat/short-link/pkg/models"
 )
 
 type LinksStoreMap struct {

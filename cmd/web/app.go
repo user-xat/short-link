@@ -8,9 +8,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/user-xat/short-link-server/pkg/models"
-	"github.com/user-xat/short-link-server/pkg/models/memcached"
-	pb "github.com/user-xat/short-link-server/proto"
+	"github.com/user-xat/short-link/pkg/models"
+	"github.com/user-xat/short-link/pkg/models/memcached"
+	pb "github.com/user-xat/short-link/proto"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
