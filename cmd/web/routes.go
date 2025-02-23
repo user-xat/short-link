@@ -1,6 +1,10 @@
 package main
 
-import "net/http"
+import (
+	"net/http"
+
+	"github.com/user-xat/short-link/pkg/middleware"
+)
 
 // Prescribes the endpoints of the web server
 func (app *application) routes() http.Handler {
@@ -12,7 +16,7 @@ func (app *application) routes() http.Handler {
 	fileServer := http.FileServer(neuteredFileSystem{http.Dir(*staticDir)})
 	mux.Handle("GET /static/", http.StripPrefix("/static", fileServer))
 
-	handler := app.Logging(mux)
+	handler := middleware.Logging(mux)
 
 	return handler
 }

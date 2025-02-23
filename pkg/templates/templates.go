@@ -1,4 +1,4 @@
-package main
+package templates
 
 import (
 	"html/template"
@@ -7,39 +7,34 @@ import (
 	"github.com/user-xat/short-link/pkg/models"
 )
 
-type templateData struct {
+type TemplateData struct {
 	Link *models.LinkData
 }
 
-// Create map with html templates
-func newTemplateCache(dir string) (map[string]*template.Template, error) {
-	cache := make(map[string]*template.Template)
+type TemplatesCache map[string]*template.Template
 
+// Create map with html templates
+func NewTemplateCache(dir string) (TemplatesCache, error) {
+	cache := make(map[string]*template.Template)
 	pages, err := filepath.Glob(filepath.Join(dir, "*.page.tmpl"))
 	if err != nil {
 		return nil, err
 	}
-
 	for _, page := range pages {
 		name := filepath.Base(page)
-
 		ts, err := template.ParseFiles(page)
 		if err != nil {
 			return nil, err
 		}
-
 		ts, err = ts.ParseGlob(filepath.Join(dir, "*.layout.tmpl"))
 		if err != nil {
 			return nil, err
 		}
-
 		ts, err = ts.ParseGlob(filepath.Join(dir, "*.partial.tmpl"))
 		if err != nil {
 			return nil, err
 		}
-
 		cache[name] = ts
 	}
-
 	return cache, nil
 }

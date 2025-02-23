@@ -10,6 +10,8 @@ import (
 
 	"github.com/user-xat/short-link/pkg/models"
 	"github.com/user-xat/short-link/pkg/models/memcached"
+	"github.com/user-xat/short-link/pkg/res"
+	"github.com/user-xat/short-link/pkg/templates"
 	pb "github.com/user-xat/short-link/proto"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -34,7 +36,7 @@ func NewApplication(errorLog, infoLog *log.Logger, htmlTemplatesDir, remoteServi
 	}
 	slClient := pb.NewShortLinkClient(grpcClient)
 
-	templCache, err := newTemplateCache(htmlTemplatesDir)
+	templCache, err := templates.NewTemplateCache(htmlTemplatesDir)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create template cache: %v", err)
 	}
@@ -55,13 +57,17 @@ func (app *application) Close() {
 }
 
 func (app *application) homeHandler(w http.ResponseWriter, r *http.Request) {
-	app.render(w, "home.page.tmpl", nil)
+	err := templates.Render(app.templateCache, w, "home.page.tmpl", nil)
+	if err != nil {
+		res.ServerError(w, nil, err)
+		return
+	}
 }
 
 func (app *application) createShortLinkHandler(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	if !r.Form.Has("url") || r.Form.Get("url") == "" {
-		app.clientError(w, http.StatusBadRequest)
+		res.ClientError(w, http.StatusBadRequest)
 		return
 	}
 
@@ -71,16 +77,19 @@ func (app *application) createShortLinkHandler(w http.ResponseWriter, r *http.Re
 	defer cancel()
 	link, err := app.serviceClient.Add(ctx, &wrapperspb.StringValue{Value: sourceLink})
 	if err != nil {
-		app.serverError(w, fmt.Errorf("remote service: %v", err))
+		res.ServerError(w, app.errorLog, fmt.Errorf("remote service: %v", err))
 		return
 	}
 
-	td := &templateData{Link: &models.LinkData{
+	td := &templates.TemplateData{Link: &models.LinkData{
 		Source: link.Source,
 		Short:  fmt.Sprintf("http://%s/%s", r.Host, link.Short),
 	}}
 
-	app.render(w, "home.page.tmpl", td)
+	err = templates.Render(app.templateCache, w, "home.page.tmpl", td)
+	if err != nil {
+		res.ServerError(w, app.errorLog, err)
+	}
 }
 
 func (app *application) shortLinkHandler(w http.ResponseWriter, r *http.Request) {
@@ -98,12 +107,12 @@ func (app *application) shortLinkHandler(w http.ResponseWriter, r *http.Request)
 		if e, ok := status.FromError(err); ok {
 			switch e.Code() {
 			case codes.NotFound:
-				app.notFound(w)
+				res.ClientError(w, http.StatusNotFound)
 			default:
-				app.serverError(w, err)
+				res.ServerError(w, app.errorLog, err)
 			}
 		} else {
-			app.serverError(w, err)
+			res.ServerError(w, app.errorLog, err)
 		}
 		return
 	}
