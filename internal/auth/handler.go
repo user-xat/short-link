@@ -44,6 +44,7 @@ func (handler *AuthHandler) Login() http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		createCookie(w, token)
 		res.Json(w, RegisterResponse{
 			Token: token,
 		}, http.StatusOK)
@@ -66,8 +67,19 @@ func (handler *AuthHandler) Register() http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		createCookie(w, token)
 		res.Json(w, RegisterResponse{
 			Token: token,
 		}, http.StatusCreated)
 	}
+}
+
+func createCookie(w http.ResponseWriter, token string) {
+	http.SetCookie(w, &http.Cookie{
+		Name:     "auth",
+		Value:    token,
+		MaxAge:   86400, // 1 day
+		HttpOnly: true,
+		Secure:   true,
+	})
 }

@@ -15,51 +15,51 @@ const (
 
 type key string
 
+func IsAuthed(next http.Handler, config *configs.Config) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		data, ok := isAuthedByHeader(r, config)
+		if !ok {
+			data, ok = isAuthedByCookie(r, config)
+		}
+		if !ok {
+			writeUnauthed(w)
+			return
+		}
+		ctx := context.WithValue(r.Context(), ContextEmailKey, data.Email)
+		req := r.WithContext(ctx)
+		next.ServeHTTP(w, req)
+	})
+}
+
 func writeUnauthed(w http.ResponseWriter) {
 	http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
 }
 
-func writeAuthContext(r *http.Request, data any) *http.Request {
-	ctx := context.WithValue(r.Context(), ContextEmailKey, data)
-	return r.WithContext(ctx)
+func isAuthedByHeader(r *http.Request, config *configs.Config) (*jwt.JWTData, bool) {
+	authedHeader := r.Header.Get("Authorization")
+	if !strings.HasPrefix(authedHeader, "Bearer ") {
+		return nil, false
+	}
+	token := strings.TrimPrefix(authedHeader, "Bearer ")
+	data, isValid := jwt.NewJWT(config.Auth.Secret).Parse(token)
+	if !isValid {
+		return nil, false
+	}
+	return data, true
 }
 
-func IsAuthed(next http.Handler, config *configs.Config) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		authedHeader := r.Header.Get("Authorization")
-		if !strings.HasPrefix(authedHeader, "Bearer ") {
-			writeUnauthed(w)
-			return
-		}
-		token := strings.TrimPrefix(authedHeader, "Bearer ")
-		data, isValid := jwt.NewJWT(config.Auth.Secret).Parse(token)
-		if !isValid {
-			writeUnauthed(w)
-			return
-		}
-		req := writeAuthContext(r, data.Email)
-		next.ServeHTTP(w, req)
-	})
-}
-
-func IsAuthedCookie(next http.Handler, config *configs.Config) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		cookie, err := r.Cookie("token")
-		if err != nil {
-			writeUnauthed(w)
-			return
-		}
-		err = cookie.Valid()
-		if err != nil {
-			writeUnauthed(w)
-			return
-		}
-		data, isValid := jwt.NewJWT(config.Auth.Secret).Parse(cookie.Value)
-		if !isValid {
-			writeUnauthed(w)
-			return
-		}
-		req := writeAuthContext(r, data.Email)
-		next.ServeHTTP(w, req)
-	})
+func isAuthedByCookie(r *http.Request, config *configs.Config) (*jwt.JWTData, bool) {
+	cookie, err := r.Cookie("auth")
+	if err != nil {
+		return nil, false
+	}
+	err = cookie.Valid()
+	if err != nil {
+		return nil, false
+	}
+	data, isValid := jwt.NewJWT(config.Auth.Secret).Parse(cookie.Value)
+	if !isValid {
+		return nil, false
+	}
+	return data, true
 }
