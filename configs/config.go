@@ -2,7 +2,6 @@ package configs
 
 import (
 	"log"
-	"os"
 
 	"github.com/joho/godotenv"
 )
@@ -21,17 +20,17 @@ type AuthConfig struct {
 }
 
 func LoadConfig() *Config {
-	err := godotenv.Load()
+	values, err := godotenv.Read()
 	if err != nil {
-		log.Println("Error loading .env file, using default config")
+		log.Panicln("Error loading .env file")
 	}
 
 	return &Config{
 		Db: DbConfig{
-			Dsn: os.Getenv("DSN"),
+			Dsn: values["DSN"],
 		},
 		Auth: AuthConfig{
-			Secret: os.Getenv("SECRET"),
+			Secret: values["SECRET"],
 		},
 	}
 }
