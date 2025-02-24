@@ -11,7 +11,7 @@ type Db struct {
 	*gorm.DB
 }
 
-func NewDb(config *configs.Config) *Db {
+func NewDb(config *configs.ApiConfig) *Db {
 	db, err := gorm.Open(postgres.Open(config.Db.Dsn), &gorm.Config{})
 	if err != nil {
 		panic(err)

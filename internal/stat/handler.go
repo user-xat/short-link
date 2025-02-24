@@ -16,7 +16,7 @@ const (
 
 type StatHandlerDeps struct {
 	StatRepository *StatRepository
-	Config         *configs.Config
+	Config         *configs.ApiConfig
 }
 
 type StatHandler struct {

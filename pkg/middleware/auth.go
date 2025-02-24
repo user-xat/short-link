@@ -15,7 +15,7 @@ const (
 
 type key string
 
-func IsAuthed(next http.Handler, config *configs.Config) http.Handler {
+func IsAuthed(next http.Handler, config *configs.ApiConfig) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		data, ok := isAuthedByHeader(r, config)
 		if !ok {
@@ -35,7 +35,7 @@ func writeUnauthed(w http.ResponseWriter) {
 	http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
 }
 
-func isAuthedByHeader(r *http.Request, config *configs.Config) (*jwt.JWTData, bool) {
+func isAuthedByHeader(r *http.Request, config *configs.ApiConfig) (*jwt.JWTData, bool) {
 	authedHeader := r.Header.Get("Authorization")
 	if !strings.HasPrefix(authedHeader, "Bearer ") {
 		return nil, false
@@ -48,7 +48,7 @@ func isAuthedByHeader(r *http.Request, config *configs.Config) (*jwt.JWTData, bo
 	return data, true
 }
 
-func isAuthedByCookie(r *http.Request, config *configs.Config) (*jwt.JWTData, bool) {
+func isAuthedByCookie(r *http.Request, config *configs.ApiConfig) (*jwt.JWTData, bool) {
 	cookie, err := r.Cookie("auth")
 	if err != nil {
 		return nil, false

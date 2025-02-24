@@ -45,7 +45,7 @@ func App() http.Handler {
 
 	// Handler
 	auth.NewAuthHandler(router, auth.AuthHandlerDeps{
-		Config:      conf,
+		ApiConfig:   conf,
 		AuthService: authService,
 	})
 	link.NewLinkHandler(router, link.LinkHandlerDeps{

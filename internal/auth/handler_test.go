@@ -34,7 +34,7 @@ func bootstrap() (*auth.AuthHandler, sqlmock.Sqlmock, error) {
 	})
 
 	handler := auth.AuthHandler{
-		Config: &configs.Config{
+		ApiConfig: &configs.ApiConfig{
 			Auth: configs.AuthConfig{
 				Secret: "secret",
 			},

@@ -6,31 +6,20 @@ import (
 	"github.com/joho/godotenv"
 )
 
-type Config struct {
+type ServiceConfig struct {
+	Port string
 	Db   DbConfig
-	Auth AuthConfig
 }
 
-type DbConfig struct {
-	Dsn string
-}
-
-type AuthConfig struct {
-	Secret string
-}
-
-func LoadConfig() *Config {
+func LoadServiceConfig() *ServiceConfig {
 	values, err := godotenv.Read()
 	if err != nil {
 		log.Panicln("Error loading .env file")
 	}
-
-	return &Config{
+	return &ServiceConfig{
+		Port: values["SERVICE_PORT"],
 		Db: DbConfig{
 			Dsn: values["DSN"],
-		},
-		Auth: AuthConfig{
-			Secret: values["SECRET"],
 		},
 	}
 }

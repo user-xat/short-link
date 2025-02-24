@@ -16,7 +16,7 @@ import (
 
 type LinkHandlerDeps struct {
 	LinkRepository *LinkRepository
-	Config         *configs.Config
+	Config         *configs.ApiConfig
 	EventBus       *event.EventBus
 }
 

@@ -10,18 +10,18 @@ import (
 )
 
 type AuthHandler struct {
-	*configs.Config
+	*configs.ApiConfig
 	*AuthService
 }
 
 type AuthHandlerDeps struct {
-	*configs.Config
+	*configs.ApiConfig
 	*AuthService
 }
 
 func NewAuthHandler(router *http.ServeMux, deps AuthHandlerDeps) {
 	handler := &AuthHandler{
-		Config:      deps.Config,
+		ApiConfig:   deps.ApiConfig,
 		AuthService: deps.AuthService,
 	}
 	router.HandleFunc("POST /auth/login", handler.Login())
