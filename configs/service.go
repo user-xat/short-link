@@ -19,7 +19,7 @@ func LoadServiceConfig() *ServiceConfig {
 	return &ServiceConfig{
 		Port: values["SERVICE_PORT"],
 		Db: DbConfig{
-			Dsn: values["DSN"],
+			Dsn: values["SERVICE_DSN"],
 		},
 	}
 }

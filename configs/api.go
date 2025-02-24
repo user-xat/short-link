@@ -27,10 +27,10 @@ func LoadConfig() *ApiConfig {
 
 	return &ApiConfig{
 		Db: DbConfig{
-			Dsn: values["DSN"],
+			Dsn: values["API_DSN"],
 		},
 		Auth: AuthConfig{
-			Secret: values["SECRET"],
+			Secret: values["API_SECRET"],
 		},
 	}
 }

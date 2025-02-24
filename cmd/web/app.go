@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/user-xat/short-link/pkg/middleware"
 	"github.com/user-xat/short-link/pkg/models"
 	"github.com/user-xat/short-link/pkg/models/memcached"
 	"github.com/user-xat/short-link/pkg/res"
@@ -126,4 +127,19 @@ func (app *application) shortLinkHandler(w http.ResponseWriter, r *http.Request)
 	}
 
 	http.Redirect(w, r, link.Source, http.StatusSeeOther)
+}
+
+// Prescribes the endpoints of the web server
+func (app *application) routes() http.Handler {
+	mux := http.NewServeMux()
+	mux.HandleFunc("GET /{$}", app.homeHandler)
+	mux.HandleFunc("POST /{$}", app.createShortLinkHandler)
+	mux.HandleFunc("GET /{shortlink...}", app.shortLinkHandler)
+
+	fileServer := http.FileServer(neuteredFileSystem{http.Dir(*staticDir)})
+	mux.Handle("GET /static/", http.StripPrefix("/static", fileServer))
+
+	handler := middleware.Logging(mux)
+
+	return handler
 }
