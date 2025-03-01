@@ -9,6 +9,6 @@ FROM alpine
 LABEL maintainer="alex.s.kolesnikov@vk.com"
 EXPOSE 8110
 WORKDIR /app
-COPY ./ui .
+COPY ./assets .
 COPY --from=builder /build/web ./web
-ENTRYPOINT [ "./web", "-html-templ-dir", "./html", "-static-dir", "./static"]
+ENTRYPOINT [ "./web" ]

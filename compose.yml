@@ -5,46 +5,64 @@ services:
       dockerfile: web.Dockerfile
     restart: always
     ports:
-      - 80:8110
+      - "80:8110"
     networks:
       - web-tier
-      - service-tier
-      - cache-tier
+      - api-tier
+    depends_on:
+      - api
+
+  api:
+    build:
+      context: .
+      dockerfile: api.Dockerfile
+    restart: always
     depends_on:
       - service
-      - cache
+      - redis
+      - postgres
+    networks:
+      - api-tier
+      - internal-tier
 
   service:
     build:
       context: .
       dockerfile: service.Dockerfile
     restart: always
-    networks:
-      - service-tier
-      - redis-tier
     depends_on:
-      - redis
+      - postgres
+    networks:
+      - internal-tier
 
   redis:
     image: redis
     restart: always
     command: ["redis-server", "--save", "30", "1"]
     networks:
-      - redis-tier
+      - internal-tier
     volumes:
       - redis-data:/data
 
-  cache:
-    image: memcached
+  postgres:
+    image: postgres
     restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: my_pass
+      PGDATA: /data/postgres
+    volumes:
+      - postgres_data:/data/postgres:rw
     networks:
-      - cache-tier
+      - internal-tier
 
 volumes:
   redis-data:
+  postgres_data:
 
 networks:
   web-tier:
-  service-tier:
-  redis-tier:
-  cache-tier:
+  api-tier:
+  internal-tier:
