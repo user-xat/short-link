@@ -3,13 +3,7 @@ package templates
 import (
 	"html/template"
 	"path/filepath"
-
-	"github.com/user-xat/short-link/pkg/models"
 )
-
-type TemplateData struct {
-	Link *models.LinkData
-}
 
 type TemplatesCache map[string]*template.Template
 

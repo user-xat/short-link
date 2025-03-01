@@ -1,68 +1,58 @@
 package main
 
 import (
-	"flag"
 	"log"
 	"net/http"
 	"os"
-	"path/filepath"
+
+	"github.com/user-xat/short-link/configs"
+	"github.com/user-xat/short-link/internal/web"
+	"github.com/user-xat/short-link/pkg/middleware"
 )
 
-var (
-	port              = flag.String("addr", "8110", "Launch port")
-	memCacheAddr      = flag.String("memcache", "cache:11211", "Network addres for Memcached")
-	remoteServiceAddr = flag.String("remote-service", "service:54321", "The addres remote service")
-	staticDir         = flag.String("static-dir", "./ui/static", "Path to static assets")
-	htmlTemplates     = flag.String("html-templ-dir", "./ui/html", "path to html templates dir")
-)
+type AppDeps struct {
+	*configs.WebConfig
+	errorLog *log.Logger
+	infoLog  *log.Logger
+}
+
+func App(deps AppDeps) http.Handler {
+	router := http.NewServeMux()
+
+	webService := web.NewWebService(web.WebServiceDeps{
+		WebConfig: deps.WebConfig,
+		ErrorLog:  deps.errorLog,
+		InfoLog:   deps.infoLog,
+	})
+
+	web.NewWebHandler(router, web.WebHandlerDeps{
+		WebService: webService,
+		WebConfig:  deps.WebConfig,
+	})
+
+	// Middlewares
+	stack := middleware.Chain(
+		middleware.Logging,
+	)
+	return stack(router)
+}
 
 func main() {
-	flag.Parse()
 	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
 	errorLog := log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
+	conf := configs.LoadWebConfig()
+	app := App(AppDeps{
+		errorLog:  errorLog,
+		infoLog:   infoLog,
+		WebConfig: conf,
+	})
 
-	app, err := NewApplication(errorLog, infoLog, *htmlTemplates, *remoteServiceAddr, []string{*memCacheAddr})
-	if err != nil {
-		errorLog.Fatalf("failed create application: %v", err)
-	}
-	defer app.Close()
-
-	srv := &http.Server{
-		Addr:     ":" + *port,
+	srv := http.Server{
+		Addr:     ":" + conf.LaunchPort,
 		ErrorLog: errorLog,
-		Handler:  app.routes(),
+		Handler:  app,
 	}
 
-	infoLog.Printf("Server launch on http://localhost:%v", *port)
+	infoLog.Printf("Server launch on http://localhost:%v", conf.LaunchPort)
 	errorLog.Fatal(srv.ListenAndServe())
-}
-
-type neuteredFileSystem struct {
-	fs http.FileSystem
-}
-
-func (nfs neuteredFileSystem) Open(path string) (http.File, error) {
-	f, err := nfs.fs.Open(path)
-	if err != nil {
-		return nil, err
-	}
-
-	s, err := f.Stat()
-	if err != nil {
-		return nil, err
-	}
-
-	if s.IsDir() {
-		index := filepath.Join(path, "index.html")
-		if _, err := nfs.fs.Open(index); err != nil {
-			closeErr := f.Close()
-			if closeErr != nil {
-				return nil, closeErr
-			}
-
-			return nil, err
-		}
-	}
-
-	return f, nil
 }
