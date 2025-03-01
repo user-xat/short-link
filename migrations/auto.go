@@ -1,9 +1,7 @@
 package main
 
 import (
-	"os"
-
-	"github.com/joho/godotenv"
+	"github.com/user-xat/short-link/configs"
 	"github.com/user-xat/short-link/internal/link"
 	"github.com/user-xat/short-link/internal/stat"
 	"github.com/user-xat/short-link/internal/user"
@@ -12,12 +10,8 @@ import (
 )
 
 func main() {
-	err := godotenv.Load()
-	if err != nil {
-		panic(err)
-	}
-
-	db, err := gorm.Open(postgres.Open(os.Getenv("DSN")), &gorm.Config{})
+	conf := configs.LoadApiConfig()
+	db, err := gorm.Open(postgres.Open(conf.Db.Dsn), &gorm.Config{})
 	if err != nil {
 		panic(err)
 	}

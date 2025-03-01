@@ -8,6 +8,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/user-xat/short-link/configs"
 	"github.com/user-xat/short-link/internal/auth"
 	"github.com/user-xat/short-link/internal/user"
 	"github.com/user-xat/short-link/pkg/req"
@@ -49,7 +50,8 @@ func TestLoginSuccess(t *testing.T) {
 	initData(db)
 	defer removeData(db)
 
-	ts := httptest.NewServer(App())
+	conf := configs.LoadApiConfig()
+	ts := httptest.NewServer(App(conf))
 	defer ts.Close()
 	data, _ := json.Marshal(&auth.LoginRequest{
 		Email:    "a2@a.ru",
@@ -76,7 +78,8 @@ func TestLoginFailed(t *testing.T) {
 	initData(db)
 	defer removeData(db)
 
-	ts := httptest.NewServer(App())
+	conf := configs.LoadApiConfig()
+	ts := httptest.NewServer(App(conf))
 	defer ts.Close()
 	data, _ := json.Marshal(&auth.LoginRequest{
 		Email:    "a2@a.ru",

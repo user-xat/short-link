@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/user-xat/short-link/configs"
@@ -15,18 +16,18 @@ import (
 )
 
 func main() {
-	app := App()
+	conf := configs.LoadApiConfig()
+	app := App(conf)
 	server := http.Server{
-		Addr:    ":9090",
+		Addr:    ":" + conf.Port,
 		Handler: app,
 	}
 
-	fmt.Println("Server is listening on port 9090")
-	server.ListenAndServe()
+	fmt.Printf("Server is listening on port %s\n", conf.Port)
+	log.Fatal(server.ListenAndServe())
 }
 
-func App() http.Handler {
-	conf := configs.LoadConfig()
+func App(conf *configs.ApiConfig) http.Handler {
 	database := db.NewDb(conf)
 	router := http.NewServeMux()
 	eventBus := event.NewEventBus()

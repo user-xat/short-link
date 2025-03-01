@@ -7,30 +7,37 @@ import (
 )
 
 type ApiConfig struct {
-	Db   DbConfig
-	Auth AuthConfig
+	Port  string
+	Db    DbConfig
+	Cache DbConfig
+	Auth  AuthConfig
 }
 
 type DbConfig struct {
-	Dsn string
+	Dsn           string
+	SocketAddress string
 }
 
 type AuthConfig struct {
 	Secret string
 }
 
-func LoadConfig() *ApiConfig {
+func LoadApiConfig() *ApiConfig {
 	values, err := godotenv.Read()
 	if err != nil {
-		log.Panicln("Error loading .env file")
+		log.Println("Error opening .env file. Default values are used")
 	}
-
+	s := envStore(values)
 	return &ApiConfig{
+		Port: s.getValue("API_PORT", "9090"),
 		Db: DbConfig{
-			Dsn: values["API_DSN"],
+			Dsn: s.getValue("API_DSN", "host=localhost user=postgres password=my_pass dbname=shortlink port=5432 sslmode=disable"),
 		},
 		Auth: AuthConfig{
-			Secret: values["API_SECRET"],
+			Secret: s.getValue("API_SECRET", "my-256-bit-secret"),
+		},
+		Cache: DbConfig{
+			SocketAddress: s.getValue("API_CACHE_ADDR", "redis:6379"),
 		},
 	}
 }

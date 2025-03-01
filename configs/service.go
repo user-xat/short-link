@@ -14,12 +14,13 @@ type ServiceConfig struct {
 func LoadServiceConfig() *ServiceConfig {
 	values, err := godotenv.Read()
 	if err != nil {
-		log.Panicln("Error loading .env file")
+		log.Println("Error opening .env file. Default values are used")
 	}
+	s := envStore(values)
 	return &ServiceConfig{
-		Port: values["SERVICE_PORT"],
+		Port: s.getValue("SERVICE_PORT", "9091"),
 		Db: DbConfig{
-			Dsn: values["SERVICE_DSN"],
+			Dsn: s.getValue("SERVICE_DSN", "host=localhost user=postgres password=my_pass dbname=shortlink port=5432 sslmode=disable"),
 		},
 	}
 }
