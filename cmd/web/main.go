@@ -8,6 +8,7 @@ import (
 	"github.com/user-xat/short-link/configs"
 	"github.com/user-xat/short-link/internal/web"
 	"github.com/user-xat/short-link/pkg/middleware"
+	"github.com/user-xat/short-link/pkg/templates"
 )
 
 type AppDeps struct {
@@ -17,6 +18,11 @@ type AppDeps struct {
 }
 
 func App(deps AppDeps) http.Handler {
+	tmplCache, err := templates.NewTemplateCache(deps.WebConfig.HtmlTemplDir)
+	if err != nil {
+		log.Fatalf("can't create template cache using dir %s: %v", deps.WebConfig.HtmlTemplDir, err)
+	}
+
 	router := http.NewServeMux()
 
 	webService := web.NewWebService(web.WebServiceDeps{
@@ -26,8 +32,9 @@ func App(deps AppDeps) http.Handler {
 	})
 
 	web.NewWebHandler(router, web.WebHandlerDeps{
-		WebService: webService,
-		WebConfig:  deps.WebConfig,
+		WebService:    webService,
+		WebConfig:     deps.WebConfig,
+		TemplateCache: tmplCache,
 	})
 
 	// Middlewares

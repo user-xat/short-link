@@ -13,7 +13,7 @@ import (
 type WebHandlerDeps struct {
 	*WebService
 	*configs.WebConfig
-	templateCache templates.TemplatesCache
+	TemplateCache templates.TemplatesCache
 }
 
 type WebHandler struct {
@@ -24,7 +24,7 @@ type WebHandler struct {
 func NewWebHandler(router *http.ServeMux, deps WebHandlerDeps) {
 	handler := &WebHandler{
 		WebService:    deps.WebService,
-		templateCache: deps.templateCache,
+		templateCache: deps.TemplateCache,
 	}
 
 	router.HandleFunc("GET /{$}", handler.Home())
