@@ -11,10 +11,10 @@
         <button type="submit" class="w-100 btn btn-primary">Short</button>
     </div>
 </form>
-{{if and . .Link}}
+{{if .}}
 <hr class="my-4">
 <div class="alert alert-success" role="alert">
-    Your short link: <a href="{{.Link.Hashed}}" class="alert-link" target="_blank" rel="noopener noreferrer">{{.Link.Hashed}}</a>
+    Your short link: <a href="{{.Hashed}}" class="alert-link" target="_blank" rel="noopener noreferrer">{{.Hashed}}</a>
 </div>
 {{end}}
 {{end}}

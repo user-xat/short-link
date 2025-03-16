@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/user-xat/short-link/configs"
+	"github.com/user-xat/short-link/pkg/req"
 	"github.com/user-xat/short-link/pkg/res"
 	"github.com/user-xat/short-link/pkg/templates"
 )
@@ -51,15 +52,20 @@ func (h *WebHandler) CreateShortLink() http.HandlerFunc {
 			res.ClientError(w, http.StatusBadRequest)
 			return
 		}
-		url := r.Form.Get("url")
-		link, err := h.WebService.CreateLink(url)
+		reqLink := LinkCreateRequest{Url: r.FormValue("url")}
+		err := req.IsValid(reqLink)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		link, err := h.WebService.CreateLink(&reqLink)
 		if err != nil {
 			res.ServerError(w, h.ErrorLog, err)
 			return
 		}
 		td := &TemplLinkData{
-			Url:    url,
-			Hashed: fmt.Sprintf("http://%s/%s", r.Host, link),
+			Url:    link.Url,
+			Hashed: fmt.Sprintf("%s/%s", h.WebConfig.ApiAddr, link.Hash),
 		}
 		err = templates.Render(h.templateCache, w, "home.page.tmpl", td)
 		if err != nil {
@@ -67,40 +73,6 @@ func (h *WebHandler) CreateShortLink() http.HandlerFunc {
 		}
 	}
 }
-
-// func (h *WebHandler) GoTo() http.HandlerFunc {
-// 	return func(w http.ResponseWriter, r *http.Request) {
-// 		shortlink := r.PathValue("hash")
-// 		ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
-// 		defer cancel()
-// 		if link, err := h.cacheDb.Get(ctx, shortlink); err == nil {
-// 			http.Redirect(w, r, link.Source, http.StatusSeeOther)
-// 			return
-// 		}
-// 		link, err := h.serviceClient.Get(ctx, &wrapperspb.StringValue{Value: shortlink})
-// 		if err != nil {
-// 			if e, ok := status.FromError(err); ok {
-// 				switch e.Code() {
-// 				case codes.NotFound:
-// 					res.ClientError(w, http.StatusNotFound)
-// 				default:
-// 					res.ServerError(w, h.errorLog, err)
-// 				}
-// 			} else {
-// 				res.ServerError(w, h.errorLog, err)
-// 			}
-// 			return
-// 		}
-// 		_, err = h.cacheDb.Set(context.Background(), &models.LinkData{
-// 			Short:  link.Short,
-// 			Source: link.Source,
-// 		})
-// 		if err != nil {
-// 			h.errorLog.Printf("failed save value to cache: %v", err)
-// 		}
-// 		http.Redirect(w, r, link.Source, http.StatusSeeOther)
-// 	}
-// }
 
 type neuteredFileSystem struct {
 	fs http.FileSystem
