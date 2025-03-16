@@ -6,6 +6,16 @@ import (
 	"gorm.io/gorm/clause"
 )
 
+type ILinkRepository interface {
+	Create(link *Link) (*Link, error)
+	GetByHash(hash string) (*Link, error)
+	GetById(id uint) (*Link, error)
+	GetAll(limit, offset int) []Link
+	Update(link *Link) (*Link, error)
+	Delete(id uint) error
+	Count() int64
+}
+
 type LinkRepository struct {
 	Database *db.Db
 }
@@ -62,7 +72,6 @@ func (repo *LinkRepository) Count() int64 {
 	var count int64
 	repo.Database.
 		Table("links").
-		Where("deleted_at is null").
 		Count(&count)
 	return count
 }
@@ -71,7 +80,6 @@ func (repo *LinkRepository) GetAll(limit, offset int) []Link {
 	var links []Link
 	repo.Database.
 		Table("links").
-		Where("deleted_at is null").
 		Order("id desc").
 		Limit(limit).
 		Offset(offset).

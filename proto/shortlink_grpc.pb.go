@@ -20,16 +20,26 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	ShortLink_Add_FullMethodName = "/shortlink.v1.ShortLink/Add"
-	ShortLink_Get_FullMethodName = "/shortlink.v1.ShortLink/Get"
+	ShortLink_Create_FullMethodName    = "/shortlink.v1.ShortLink/Create"
+	ShortLink_GetByHash_FullMethodName = "/shortlink.v1.ShortLink/GetByHash"
+	ShortLink_GetById_FullMethodName   = "/shortlink.v1.ShortLink/GetById"
+	ShortLink_GetAll_FullMethodName    = "/shortlink.v1.ShortLink/GetAll"
+	ShortLink_Update_FullMethodName    = "/shortlink.v1.ShortLink/Update"
+	ShortLink_Delete_FullMethodName    = "/shortlink.v1.ShortLink/Delete"
+	ShortLink_Count_FullMethodName     = "/shortlink.v1.ShortLink/Count"
 )
 
 // ShortLinkClient is the client API for ShortLink service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ShortLinkClient interface {
-	Add(ctx context.Context, in *wrapperspb.StringValue, opts ...grpc.CallOption) (*Link, error)
-	Get(ctx context.Context, in *wrapperspb.StringValue, opts ...grpc.CallOption) (*Link, error)
+	Create(ctx context.Context, in *wrapperspb.StringValue, opts ...grpc.CallOption) (*Link, error)
+	GetByHash(ctx context.Context, in *wrapperspb.StringValue, opts ...grpc.CallOption) (*Link, error)
+	GetById(ctx context.Context, in *wrapperspb.UInt64Value, opts ...grpc.CallOption) (*Link, error)
+	GetAll(ctx context.Context, in *LimitOffset, opts ...grpc.CallOption) (*Links, error)
+	Update(ctx context.Context, in *Link, opts ...grpc.CallOption) (*Link, error)
+	Delete(ctx context.Context, in *wrapperspb.UInt64Value, opts ...grpc.CallOption) (*Void, error)
+	Count(ctx context.Context, in *Void, opts ...grpc.CallOption) (*wrapperspb.UInt64Value, error)
 }
 
 type shortLinkClient struct {
@@ -40,20 +50,70 @@ func NewShortLinkClient(cc grpc.ClientConnInterface) ShortLinkClient {
 	return &shortLinkClient{cc}
 }
 
-func (c *shortLinkClient) Add(ctx context.Context, in *wrapperspb.StringValue, opts ...grpc.CallOption) (*Link, error) {
+func (c *shortLinkClient) Create(ctx context.Context, in *wrapperspb.StringValue, opts ...grpc.CallOption) (*Link, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(Link)
-	err := c.cc.Invoke(ctx, ShortLink_Add_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, ShortLink_Create_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shortLinkClient) Get(ctx context.Context, in *wrapperspb.StringValue, opts ...grpc.CallOption) (*Link, error) {
+func (c *shortLinkClient) GetByHash(ctx context.Context, in *wrapperspb.StringValue, opts ...grpc.CallOption) (*Link, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(Link)
-	err := c.cc.Invoke(ctx, ShortLink_Get_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, ShortLink_GetByHash_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *shortLinkClient) GetById(ctx context.Context, in *wrapperspb.UInt64Value, opts ...grpc.CallOption) (*Link, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Link)
+	err := c.cc.Invoke(ctx, ShortLink_GetById_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *shortLinkClient) GetAll(ctx context.Context, in *LimitOffset, opts ...grpc.CallOption) (*Links, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Links)
+	err := c.cc.Invoke(ctx, ShortLink_GetAll_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *shortLinkClient) Update(ctx context.Context, in *Link, opts ...grpc.CallOption) (*Link, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Link)
+	err := c.cc.Invoke(ctx, ShortLink_Update_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *shortLinkClient) Delete(ctx context.Context, in *wrapperspb.UInt64Value, opts ...grpc.CallOption) (*Void, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Void)
+	err := c.cc.Invoke(ctx, ShortLink_Delete_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *shortLinkClient) Count(ctx context.Context, in *Void, opts ...grpc.CallOption) (*wrapperspb.UInt64Value, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(wrapperspb.UInt64Value)
+	err := c.cc.Invoke(ctx, ShortLink_Count_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -64,8 +124,13 @@ func (c *shortLinkClient) Get(ctx context.Context, in *wrapperspb.StringValue, o
 // All implementations must embed UnimplementedShortLinkServer
 // for forward compatibility.
 type ShortLinkServer interface {
-	Add(context.Context, *wrapperspb.StringValue) (*Link, error)
-	Get(context.Context, *wrapperspb.StringValue) (*Link, error)
+	Create(context.Context, *wrapperspb.StringValue) (*Link, error)
+	GetByHash(context.Context, *wrapperspb.StringValue) (*Link, error)
+	GetById(context.Context, *wrapperspb.UInt64Value) (*Link, error)
+	GetAll(context.Context, *LimitOffset) (*Links, error)
+	Update(context.Context, *Link) (*Link, error)
+	Delete(context.Context, *wrapperspb.UInt64Value) (*Void, error)
+	Count(context.Context, *Void) (*wrapperspb.UInt64Value, error)
 	mustEmbedUnimplementedShortLinkServer()
 }
 
@@ -76,11 +141,26 @@ type ShortLinkServer interface {
 // pointer dereference when methods are called.
 type UnimplementedShortLinkServer struct{}
 
-func (UnimplementedShortLinkServer) Add(context.Context, *wrapperspb.StringValue) (*Link, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Add not implemented")
+func (UnimplementedShortLinkServer) Create(context.Context, *wrapperspb.StringValue) (*Link, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Create not implemented")
 }
-func (UnimplementedShortLinkServer) Get(context.Context, *wrapperspb.StringValue) (*Link, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Get not implemented")
+func (UnimplementedShortLinkServer) GetByHash(context.Context, *wrapperspb.StringValue) (*Link, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetByHash not implemented")
+}
+func (UnimplementedShortLinkServer) GetById(context.Context, *wrapperspb.UInt64Value) (*Link, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetById not implemented")
+}
+func (UnimplementedShortLinkServer) GetAll(context.Context, *LimitOffset) (*Links, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAll not implemented")
+}
+func (UnimplementedShortLinkServer) Update(context.Context, *Link) (*Link, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Update not implemented")
+}
+func (UnimplementedShortLinkServer) Delete(context.Context, *wrapperspb.UInt64Value) (*Void, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
+}
+func (UnimplementedShortLinkServer) Count(context.Context, *Void) (*wrapperspb.UInt64Value, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Count not implemented")
 }
 func (UnimplementedShortLinkServer) mustEmbedUnimplementedShortLinkServer() {}
 func (UnimplementedShortLinkServer) testEmbeddedByValue()                   {}
@@ -103,38 +183,128 @@ func RegisterShortLinkServer(s grpc.ServiceRegistrar, srv ShortLinkServer) {
 	s.RegisterService(&ShortLink_ServiceDesc, srv)
 }
 
-func _ShortLink_Add_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _ShortLink_Create_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(wrapperspb.StringValue)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShortLinkServer).Add(ctx, in)
+		return srv.(ShortLinkServer).Create(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShortLink_Add_FullMethodName,
+		FullMethod: ShortLink_Create_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShortLinkServer).Add(ctx, req.(*wrapperspb.StringValue))
+		return srv.(ShortLinkServer).Create(ctx, req.(*wrapperspb.StringValue))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShortLink_Get_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _ShortLink_GetByHash_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(wrapperspb.StringValue)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShortLinkServer).Get(ctx, in)
+		return srv.(ShortLinkServer).GetByHash(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShortLink_Get_FullMethodName,
+		FullMethod: ShortLink_GetByHash_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShortLinkServer).Get(ctx, req.(*wrapperspb.StringValue))
+		return srv.(ShortLinkServer).GetByHash(ctx, req.(*wrapperspb.StringValue))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ShortLink_GetById_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(wrapperspb.UInt64Value)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShortLinkServer).GetById(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ShortLink_GetById_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShortLinkServer).GetById(ctx, req.(*wrapperspb.UInt64Value))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ShortLink_GetAll_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(LimitOffset)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShortLinkServer).GetAll(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ShortLink_GetAll_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShortLinkServer).GetAll(ctx, req.(*LimitOffset))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ShortLink_Update_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Link)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShortLinkServer).Update(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ShortLink_Update_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShortLinkServer).Update(ctx, req.(*Link))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ShortLink_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(wrapperspb.UInt64Value)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShortLinkServer).Delete(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ShortLink_Delete_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShortLinkServer).Delete(ctx, req.(*wrapperspb.UInt64Value))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ShortLink_Count_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Void)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShortLinkServer).Count(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ShortLink_Count_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShortLinkServer).Count(ctx, req.(*Void))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -147,12 +317,32 @@ var ShortLink_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*ShortLinkServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "Add",
-			Handler:    _ShortLink_Add_Handler,
+			MethodName: "Create",
+			Handler:    _ShortLink_Create_Handler,
 		},
 		{
-			MethodName: "Get",
-			Handler:    _ShortLink_Get_Handler,
+			MethodName: "GetByHash",
+			Handler:    _ShortLink_GetByHash_Handler,
+		},
+		{
+			MethodName: "GetById",
+			Handler:    _ShortLink_GetById_Handler,
+		},
+		{
+			MethodName: "GetAll",
+			Handler:    _ShortLink_GetAll_Handler,
+		},
+		{
+			MethodName: "Update",
+			Handler:    _ShortLink_Update_Handler,
+		},
+		{
+			MethodName: "Delete",
+			Handler:    _ShortLink_Delete_Handler,
+		},
+		{
+			MethodName: "Count",
+			Handler:    _ShortLink_Count_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

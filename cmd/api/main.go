@@ -28,7 +28,7 @@ func main() {
 }
 
 func App(conf *configs.ApiConfig) http.Handler {
-	database := db.NewDb(conf)
+	database := db.NewDb(&conf.Db)
 	router := http.NewServeMux()
 	eventBus := event.NewEventBus()
 
