@@ -1,34 +1,57 @@
 package link
 
 import (
+	"context"
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 
 	"github.com/user-xat/short-link/configs"
+	"github.com/user-xat/short-link/internal/models"
 	"github.com/user-xat/short-link/pkg/event"
 	"github.com/user-xat/short-link/pkg/middleware"
 	"github.com/user-xat/short-link/pkg/req"
 	"github.com/user-xat/short-link/pkg/res"
-
+	pb "github.com/user-xat/short-link/proto"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/wrapperspb"
 	"gorm.io/gorm"
 )
+
+type ICache interface {
+	Get(context.Context, string) (*models.Link, error)
+	Set(context.Context, *models.Link) error
+}
 
 type LinkHandlerDeps struct {
 	LinkRepository *LinkRepository
 	Config         *configs.ApiConfig
 	EventBus       *event.EventBus
+	Service        pb.ShortLinkClient
+	ErrorLog       *log.Logger
+	InfoLog        *log.Logger
+	Cache          ICache
 }
 
 type LinkHandler struct {
 	LinkRepository *LinkRepository
 	EventBus       *event.EventBus
+	Service        pb.ShortLinkClient
+	errorLog       *log.Logger
+	infoLog        *log.Logger
+	cache          ICache
 }
 
 func NewLinkHandler(router *http.ServeMux, deps LinkHandlerDeps) {
 	handler := &LinkHandler{
 		LinkRepository: deps.LinkRepository,
 		EventBus:       deps.EventBus,
+		Service:        deps.Service,
+		infoLog:        deps.InfoLog,
+		errorLog:       deps.ErrorLog,
+		cache:          deps.Cache,
 	}
 
 	router.HandleFunc("GET /{hash}", handler.GoTo())
@@ -38,53 +61,59 @@ func NewLinkHandler(router *http.ServeMux, deps LinkHandlerDeps) {
 	router.Handle("DELETE /link/{id}", middleware.IsAuthed(handler.Delete(), deps.Config))
 }
 
-func (handler *LinkHandler) Create() http.HandlerFunc {
+func (h *LinkHandler) Create() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		body, err := req.HandleBody[LinkCreateRequest](w, r)
 		if err != nil {
 			return
 		}
-
-		link := NewLink(body.Url)
-		for range 100 {
-			var existedLink *Link
-			existedLink, err = handler.LinkRepository.GetByHash(link.Hash)
-			if existedLink == nil {
-				break
-			}
-			link.GenerateHash()
-		}
-		if err == nil {
-			http.Error(w, "Can't create unique hash for link. Try again or contact us.", http.StatusInternalServerError)
-			return
-		}
-
-		createdLink, err := handler.LinkRepository.Create(link)
+		createdLink, err := h.Service.Create(r.Context(), wrapperspb.String(body.Url))
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			res.ServerError(w, h.errorLog, err)
 			return
 		}
-		res.Json(w, createdLink, http.StatusCreated)
+		res.Json(w, models.Link{
+			Model: gorm.Model{ID: uint(createdLink.Id)},
+			Url:   createdLink.Url,
+			Hash:  createdLink.Hash,
+		}, http.StatusCreated)
 	}
 }
 
-func (handler *LinkHandler) GoTo() http.HandlerFunc {
+func (h *LinkHandler) GoTo() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		hash := r.PathValue("hash")
-		link, err := handler.LinkRepository.GetByHash(hash)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusNotFound)
+		if link, err := h.cache.Get(r.Context(), hash); err == nil {
+			http.Redirect(w, r, link.Url, http.StatusTemporaryRedirect)
 			return
 		}
-		go handler.EventBus.Publish(event.Event{
+		link, err := h.Service.GetByHash(r.Context(), wrapperspb.String(hash))
+		if err != nil {
+			if e, ok := status.FromError(err); ok {
+				switch e.Code() {
+				case codes.NotFound:
+					res.ClientError(w, http.StatusNotFound)
+				default:
+					res.ServerError(w, h.errorLog, err)
+				}
+			} else {
+				res.ServerError(w, h.errorLog, err)
+			}
+			return
+		}
+		go h.EventBus.Publish(event.Event{
 			Type: event.EventLinkVisited,
-			Data: link.ID,
+			Data: &models.Link{
+				Model: gorm.Model{ID: uint(link.GetId())},
+				Url:   link.GetUrl(),
+				Hash:  link.GetHash(),
+			},
 		})
 		http.Redirect(w, r, link.Url, http.StatusTemporaryRedirect)
 	}
 }
 
-func (handler *LinkHandler) Update() http.HandlerFunc {
+func (h *LinkHandler) Update() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		email, ok := r.Context().Value(middleware.ContextEmailKey).(string)
 		if ok {
@@ -102,20 +131,29 @@ func (handler *LinkHandler) Update() http.HandlerFunc {
 			return
 		}
 
-		link, err := handler.LinkRepository.Update(&Link{
-			Model: gorm.Model{ID: uint(id)},
-			Url:   body.Url,
-			Hash:  body.Hash,
+		link, err := h.Service.Update(r.Context(), &pb.Link{
+			Id:   id,
+			Url:  body.Url,
+			Hash: body.Hash,
 		})
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			res.ServerError(w, h.errorLog, err)
 			return
 		}
-		res.Json(w, link, http.StatusOK)
+		updatedLink := models.Link{
+			Model: gorm.Model{ID: uint(link.Id)},
+			Url:   link.Url,
+			Hash:  link.Hash,
+		}
+		go h.EventBus.Publish(event.Event{
+			Type: event.EventLinkUpdated,
+			Data: &updatedLink,
+		})
+		res.Json(w, updatedLink, http.StatusOK)
 	}
 }
 
-func (handler *LinkHandler) Delete() http.HandlerFunc {
+func (h *LinkHandler) Delete() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		sId := r.PathValue("id")
 		id, err := strconv.ParseUint(sId, 10, 32)
@@ -123,16 +161,16 @@ func (handler *LinkHandler) Delete() http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		err = handler.LinkRepository.Delete(uint(id))
+		_, err = h.Service.Delete(r.Context(), wrapperspb.UInt64(id))
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			res.ServerError(w, h.errorLog, err)
 			return
 		}
 		res.Json(w, nil, http.StatusOK)
 	}
 }
 
-func (handler *LinkHandler) GetAll() http.HandlerFunc {
+func (h *LinkHandler) GetAll() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		limit, err := strconv.Atoi(r.URL.Query().Get("limit"))
 		if err != nil {
@@ -144,11 +182,31 @@ func (handler *LinkHandler) GetAll() http.HandlerFunc {
 			http.Error(w, "invalid offset", http.StatusBadRequest)
 			return
 		}
-		links := handler.LinkRepository.GetAll(limit, offset)
-		count := handler.LinkRepository.Count()
+		recLinks, err := h.Service.GetAll(r.Context(), &pb.LimitOffset{
+			Limit:  uint64(limit),
+			Offset: uint64(offset),
+		})
+		if err != nil {
+			res.ServerError(w, h.errorLog, err)
+			return
+		}
+		recCount, err := h.Service.Count(r.Context(), &pb.Void{})
+		if err != nil {
+			res.ServerError(w, h.errorLog, err)
+			return
+		}
+		pbLinks := recLinks.GetLink()
+		links := make([]models.Link, len(pbLinks))
+		for i := range links {
+			links[i] = models.Link{
+				Model: gorm.Model{ID: uint(pbLinks[i].Id)},
+				Url:   pbLinks[i].Url,
+				Hash:  pbLinks[i].Hash,
+			}
+		}
 		res.Json(w, GetAllLinksResponse{
 			Links: links,
-			Count: count,
+			Count: int64(recCount.GetValue()),
 		}, http.StatusOK)
 	}
 }

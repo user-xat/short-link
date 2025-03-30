@@ -17,13 +17,15 @@ services:
       context: .
       dockerfile: api.Dockerfile
     restart: always
+    ports:
+      - "9090:9090"
     depends_on:
       - service
       - redis
       - postgres
     networks:
       - api-tier
-      - internal-tier
+      - service-tier
 
   service:
     build:
@@ -33,16 +35,13 @@ services:
     depends_on:
       - postgres
     networks:
-      - internal-tier
+      - service-tier
 
   redis:
     image: redis
     restart: always
-    command: ["redis-server", "--save", "30", "1"]
     networks:
-      - internal-tier
-    volumes:
-      - redis-data:/data
+      - api-tier
 
   postgres:
     image: postgres
@@ -56,13 +55,12 @@ services:
     volumes:
       - postgres_data:/data/postgres:rw
     networks:
-      - internal-tier
+      - service-tier
 
 volumes:
-  redis-data:
   postgres_data:
 
 networks:
   web-tier:
   api-tier:
-  internal-tier:
+  service-tier:

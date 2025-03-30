@@ -3,6 +3,7 @@ package stat
 import (
 	"log"
 
+	"github.com/user-xat/short-link/internal/models"
 	"github.com/user-xat/short-link/pkg/di"
 	"github.com/user-xat/short-link/pkg/event"
 )
@@ -24,15 +25,13 @@ func NewStatService(deps StatServiceDeps) *StatService {
 	}
 }
 
-func (s *StatService) AddClick() {
-	for msg := range s.EventBus.Subscribe() {
-		if msg.Type == event.EventLinkVisited {
-			id, ok := msg.Data.(uint)
-			if !ok {
-				log.Fatalln("Bad EventLinkVisited Data: ", msg.Data)
-				continue
-			}
-			s.StatRepository.AddClick(id)
+func (s *StatService) AddClick(msg *event.Event) {
+	switch msg.Type {
+	case event.EventLinkVisited:
+		link, ok := msg.Data.(*models.Link)
+		if !ok {
+			log.Fatalln("Bad EventLinkVisited Data: ", msg.Data)
 		}
+		s.StatRepository.AddClick(link.ID)
 	}
 }

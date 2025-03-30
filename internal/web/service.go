@@ -10,7 +10,6 @@ import (
 	"net/url"
 
 	"github.com/user-xat/short-link/configs"
-	"github.com/user-xat/short-link/pkg/models/memcached"
 	"github.com/user-xat/short-link/pkg/req"
 )
 
@@ -22,14 +21,12 @@ type WebServiceDeps struct {
 	WebConfig *configs.WebConfig
 	ErrorLog  *log.Logger
 	InfoLog   *log.Logger
-	CacheDb   *memcached.CachedLinkModel
 }
 
 type WebService struct {
 	WebConfig *configs.WebConfig
 	ErrorLog  *log.Logger
 	InfoLog   *log.Logger
-	CacheDb   *memcached.CachedLinkModel
 	client    *http.Client
 }
 
@@ -37,7 +34,6 @@ func NewWebService(deps WebServiceDeps) *WebService {
 	return &WebService{
 		ErrorLog:  deps.ErrorLog,
 		InfoLog:   deps.InfoLog,
-		CacheDb:   deps.CacheDb,
 		WebConfig: deps.WebConfig,
 		client:    &http.Client{},
 	}

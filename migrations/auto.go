@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/user-xat/short-link/configs"
-	"github.com/user-xat/short-link/internal/link"
+	"github.com/user-xat/short-link/internal/models"
 	"github.com/user-xat/short-link/internal/stat"
 	"github.com/user-xat/short-link/internal/user"
 	"gorm.io/driver/postgres"
@@ -15,5 +15,5 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	db.AutoMigrate(&link.Link{}, &user.User{}, &stat.Stat{})
+	db.AutoMigrate(&models.Link{}, &user.User{}, &stat.Stat{})
 }

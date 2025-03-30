@@ -7,10 +7,11 @@ import (
 )
 
 type ApiConfig struct {
-	Port  string
-	Db    DbConfig
-	Cache DbConfig
-	Auth  AuthConfig
+	Port        string
+	Db          DbConfig
+	Cache       DbConfig
+	Auth        AuthConfig
+	ServiceAddr string
 }
 
 type DbConfig struct {
@@ -39,5 +40,6 @@ func LoadApiConfig() *ApiConfig {
 		Cache: DbConfig{
 			SocketAddress: s.getValue("API_CACHE_ADDR", "redis:6379"),
 		},
+		ServiceAddr: s.getValue("API_SERVICE_ADDR", "service:9091"),
 	}
 }

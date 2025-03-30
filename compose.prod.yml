@@ -24,23 +24,27 @@ services:
   redis:
     image: redis
     restart: always
-    command: ["redis-server", "--save", "30", "1"]
     networks:
-      - redis-tier
-    volumes:
-      - redis-data:/data
+      - api-tier
 
-  cache:
-    image: memcached
+  postgres:
+    image: postgres
     restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: my_pass
+      PGDATA: /data/postgres
+    volumes:
+      - postgres_data:/data/postgres:rw
     networks:
-      - cache-tier
+      - service-tier
 
 volumes:
-  redis-data:
+  postgres_data:
 
 networks:
   web-tier:
+  api-tier:
   service-tier:
-  redis-tier:
-  cache-tier:

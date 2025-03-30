@@ -2,9 +2,8 @@ package link
 
 import (
 	"context"
-	"errors"
 
-	"github.com/user-xat/short-link/pkg/models"
+	"github.com/user-xat/short-link/internal/models"
 	"github.com/user-xat/short-link/pkg/req"
 	pb "github.com/user-xat/short-link/proto"
 	"google.golang.org/grpc/codes"
@@ -34,9 +33,9 @@ func (g *GRPCHandler) Create(ctx context.Context, url *wrapperspb.StringValue) (
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
-	link := NewLink(reqLink.Url)
+	link := models.NewLink(reqLink.Url)
 	for range 100 {
-		var existedLink *Link
+		var existedLink *models.Link
 		existedLink, err = g.LinkRepository.GetByHash(link.Hash)
 		if existedLink == nil {
 			break
@@ -60,9 +59,6 @@ func (g *GRPCHandler) Create(ctx context.Context, url *wrapperspb.StringValue) (
 
 func (g *GRPCHandler) GetByHash(ctx context.Context, hash *wrapperspb.StringValue) (*pb.Link, error) {
 	link, err := g.LinkRepository.GetByHash(hash.Value)
-	if errors.Is(err, models.ErrNotRecord) {
-		return nil, status.Errorf(codes.NotFound, "record by hash %s has not found", hash.Value)
-	}
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "error to get record by hash %s: %v", hash.Value, err)
 	}
@@ -76,9 +72,6 @@ func (g *GRPCHandler) GetByHash(ctx context.Context, hash *wrapperspb.StringValu
 
 func (g *GRPCHandler) GetById(ctx context.Context, id *wrapperspb.UInt64Value) (*pb.Link, error) {
 	link, err := g.LinkRepository.GetById(uint(id.Value))
-	if errors.Is(err, models.ErrNotRecord) {
-		return nil, status.Errorf(codes.NotFound, "record by id %d has not found", id.Value)
-	}
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "error to get record by id %d: %v", id.Value, err)
 	}
@@ -105,7 +98,7 @@ func (g *GRPCHandler) GetAll(ctx context.Context, option *pb.LimitOffset) (*pb.L
 }
 
 func (g *GRPCHandler) Update(ctx context.Context, link *pb.Link) (*pb.Link, error) {
-	updatedLink, err := g.LinkRepository.Update(&Link{
+	updatedLink, err := g.LinkRepository.Update(&models.Link{
 		Model: gorm.Model{
 			ID: uint(link.Id),
 		},

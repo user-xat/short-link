@@ -1,9 +1,7 @@
-package link
+package models
 
 import (
 	"math/rand"
-
-	"github.com/user-xat/short-link/internal/stat"
 
 	"gorm.io/gorm"
 )
@@ -14,9 +12,9 @@ var (
 
 type Link struct {
 	gorm.Model
-	Url   string      `json:"url"`
-	Hash  string      `json:"hash" gorm:"uniqueIndex"`
-	Stats []stat.Stat `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	Url   string `json:"url"`
+	Hash  string `json:"hash" gorm:"uniqueIndex"`
+	Stats []Stat `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 }
 
 func NewLink(url string) *Link {
