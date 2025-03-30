@@ -3,23 +3,41 @@ services:
     image: userxat/shortlink-web
     restart: always
     ports:
-      - 80:8110
+      - "80:8110"
+    environment:
+      WEB_API_ADDR: "http://localhost:9090"
     networks:
       - web-tier
-      - service-tier
-      - cache-tier
+      - api-tier
+    depends_on:
+      - api
+
+  api:
+    image: userxat/shortlink-api
+    restart: always
+    ports:
+      - "9090:9090"
+    environment:
+      API_DSN: "host=postgres user=postgres password=my_pass dbname=shortlink port=5432 sslmode=disable"
+      API_CACHE_ADDR: "redis:6379"
+      API_SERVICE_ADDR: "service:9091"
     depends_on:
       - service
-      - cache
+      - redis
+      - postgres
+    networks:
+      - api-tier
+      - service-tier
 
   service:
     image: userxat/shortlink-service
     restart: always
+    environment:
+      SERVICE_DSN: "host=postgres user=postgres password=my_pass dbname=shortlink port=5432 sslmode=disable"
+    depends_on:
+      - postgres
     networks:
       - service-tier
-      - redis-tier
-    depends_on:
-      - redis
 
   redis:
     image: redis
