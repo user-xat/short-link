@@ -40,13 +40,6 @@ func NewWebService(deps WebServiceDeps) *WebService {
 }
 
 func (s *WebService) CreateLink(link *LinkCreateRequest) (*LinkCreateResponse, error) {
-	// ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
-	// defer cancel()
-	// link, err := h.serviceClient.Add(ctx, &wrapperspb.StringValue{Value: sourceLink})
-	// if err != nil {
-	// 	res.ServerError(w, h.errorLog, fmt.Errorf("remote service: %v", err))
-	// 	return
-	// }
 	r, err := s.createRequest(ReqCreateLink, link)
 	if err != nil {
 		return nil, err

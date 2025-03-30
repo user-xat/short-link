@@ -6,6 +6,8 @@ services:
     restart: always
     ports:
       - "80:8110"
+    environment:
+      WEB_API_ADDR: "http://api:9090"
     networks:
       - web-tier
       - api-tier
@@ -19,6 +21,10 @@ services:
     restart: always
     ports:
       - "9090:9090"
+    environment:
+      API_DSN: "host=postgres user=postgres password=my_pass dbname=shortlink port=5432 sslmode=disable"
+      API_CACHE_ADDR: "redis:6379"
+      API_SERVICE_ADDR: "service:9091"
     depends_on:
       - service
       - redis
@@ -32,6 +38,8 @@ services:
       context: .
       dockerfile: service.Dockerfile
     restart: always
+    environment:
+      SERVICE_DSN: "host=postgres user=postgres password=my_pass dbname=shortlink port=5432 sslmode=disable"
     depends_on:
       - postgres
     networks:

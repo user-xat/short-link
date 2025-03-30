@@ -24,15 +24,18 @@ type AuthConfig struct {
 }
 
 func LoadApiConfig() *ApiConfig {
+	var s *envStore
 	values, err := godotenv.Read()
 	if err != nil {
 		log.Println("Error opening .env file. Default values are used")
+		s = newEnvStore(nil)
+	} else {
+		s = newEnvStore(values)
 	}
-	s := envStore(values)
 	return &ApiConfig{
 		Port: s.getValue("API_PORT", "9090"),
 		Db: DbConfig{
-			Dsn: s.getValue("API_DSN", "host=localhost user=postgres password=my_pass dbname=shortlink port=5432 sslmode=disable"),
+			Dsn: s.getValue("API_DSN", "host=localhost user=postgres password=postgres dbname=postgres port=5432 sslmode=disable"),
 		},
 		Auth: AuthConfig{
 			Secret: s.getValue("API_SECRET", "my-256-bit-secret"),
